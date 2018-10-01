@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+chcon -Rt svirt_sandbox_file_t ./
+
+docker-compose up -d

@@ -1,0 +1,58 @@
+version: '2'
+
+services:
+### Nginx Containers ##################################
+  nginx:
+    build:
+      context: ./nginx
+    restart: always
+    depends_on:
+      - fpm71
+    volumes:
+      - ./logs/nginx:/var/log/nginx
+      - ../psi-ec/web:/var/www/html/web
+      - ./nginx/sites:/etc/nginx/sites
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - "10080:80"
+    networks:
+      - frontend
+      - backend
+### PHP-FPM Containers ##################################
+  fpm71:
+    build:
+      context: ./fpm
+      dockerfile: "./71/Dockfile"
+    restart: always
+    depends_on:
+      - db
+    volumes:
+      - ./fpm/conf.d/xdebug.ini:/usr/local/etc/php/conf.d/xdebug.ini
+      - ../psi-ec/web:/var/www/html/web
+    networks:
+      - backend
+
+### DB Container #############################################
+  db:
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+      - ./mysql/initdb.d:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - 3306:3306
+    networks:
+      - backend
+
+
+### Networks Setup ############################################
+
+networks:
+  frontend:
+    driver: "bridge"
+  backend:
+    driver: "bridge"
+
